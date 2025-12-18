@@ -1,87 +1,89 @@
-# compiler-with-tokenization-and-cfg-parsing
-Compiler frontend implementing FSA-based lexical analysis and CFG-based syntactic parsing for a toy programming language, as part of an Automata Theory assignment.
+# Compiler Frontend: Tokenization and Syntactic Validation
 
-# Compiler Frontend: FSA-Based Tokenization and CFG Parsing
+This repository contains a Python implementation of a simple compiler
+frontend that performs **lexical analysis (tokenization)** and
+**syntactic validation** for a toy programming language.
 
-This repository contains a Python implementation of a compiler frontend
-for a simple programming language. The focus of this project is on
-lexical analysis using Finite State Automata (FSAs) and syntactic
-analysis using a Context-Free Grammar (CFG).
-
-The project was developed to demonstrate a clear understanding of
-automata theory concepts and their application in real compiler design,
-rather than to build a production-ready compiler.
+The implementation is intentionally explicit and lightweight, focusing
+on correctness and clarity rather than completeness or optimization.
 
 ---
 
-## Problem Context
+## Overview
 
-In compiler design, the frontend is responsible for transforming raw
-source code into a structured representation that can be analyzed and
-validated. This transformation typically occurs in two major stages:
+The compiler frontend works in two stages:
 
-1. **Lexical Analysis (Tokenization)**  
-2. **Syntactic Analysis (Parsing)**  
+1. **Tokenization (Lexical Analysis)**  
+2. **Grammar Checking (Syntactic Analysis)**  
 
-This project implements both stages explicitly from first principles.
+For each line of input source code, the program reports whether the line
+contains:
+- **No Error**
+- **Lexical Error**
+- **Syntax Error**
+
+The output for all input lines is written to a corresponding output
+file.
 
 ---
 
-## Lexical Analysis (Tokenization)
+## Lexical Analysis (Tokenizer)
 
-Lexical analysis is performed using **Finite State Automata (FSAs)**.
-Each token class is recognized by a deterministic transition system
-that reads the source code character by character.
+The tokenizer processes the source code character by character and
+classifies lexemes into tokens.
 
-### Token Types Supported
-- **Keywords** (e.g., `if`, `else`, `print`)
-- **Identifiers**
-- **Integers**
-- **Floating-point numbers**
-- **Symbols and operators**
+### Token Types
+- `KEYWORD` — reserved words (`if`, `else`, `print`)
+- `IDENTIFIER` — valid identifiers (letters or `_` followed by letters,
+  digits, or `_`)
+- `INTEGER` — integer literals
+- `FLOAT` — floating-point literals
+- `SYMBOL` — operators and punctuation
 
 ### Token Hierarchy
-When multiple token patterns match the same lexeme, priority is resolved
-using a token hierarchy. For example, the string `if` matches the pattern
-for identifiers but is correctly classified as a keyword.
+If a lexeme matches both an identifier pattern and a keyword, it is
+classified as a **keyword**.  
+For example, `if` is recognized as a keyword, not an identifier.
 
-Lexical errors such as invalid identifiers (e.g., identifiers starting
-with digits) are detected and reported with descriptive error messages.
+### Lexical Errors
+Lexical errors are raised for invalid tokens, such as:
+- identifiers starting with digits (e.g., `2xi`)
+- malformed numeric literals
 
 ---
 
 ## Syntactic Analysis
 
-After tokenization, the token stream is validated using a
-**Context-Free Grammar (CFG)** defined for the language.
+After tokenization, the token stream is validated using a **recursive
+descent parser**.
 
-The parser checks whether the input program conforms to the grammar
-rules and raises syntactic errors when violations are detected (for
-example, invalid statement ordering or malformed expressions).
+The parser checks whether the token sequence conforms to a simplified
+statement grammar supporting:
+- conditional statements (`if` / `else`)
+- expressions with arithmetic and comparison operators
+- simple statements consisting of identifiers, numbers, or keywords
 
-The grammar captures conditional statements, expressions, and nested
-statements, enabling the detection of structurally incorrect programs.
+The grammar is implemented procedurally rather than using a parser
+generator, to make the parsing logic explicit and easy to follow.
 
----
-
-## Error Handling
-
-The compiler distinguishes clearly between:
-- **Lexical errors**: invalid tokens or malformed lexemes
-- **Syntactic errors**: grammatically incorrect token sequences
-
-Errors are reported early and precisely to help diagnose the source of
-the problem in the input program.
+### Syntax Errors
+Syntax errors are reported when:
+- tokens appear in invalid positions
+- keywords such as `else` appear without a corresponding `if`
+- expressions or statements violate the expected structure
 
 ---
 
-## Implementation Overview
+## Input and Output Behavior
 
-- The lexer simulates FSAs directly in Python, without relying on
-  regular expression libraries.
-- The parser processes the token list sequentially according to the
-  grammar rules.
-- The design emphasizes clarity, correctness, and conceptual alignment
-  with automata theory.
+### Input
+- The program takes a **file path** as a command-line argument.
+- Each line in the input file is treated as an independent statement.
 
-
+### Output
+- For each input line, the program outputs one of:
+  - `No Error`
+  - `Lexical Error`
+  - `Syntax Error`
+- The results are written to an output file named:
+<input_filename>_output.txt
